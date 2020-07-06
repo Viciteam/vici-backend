@@ -37,4 +37,39 @@ class SocialProfile extends Model{
             ->get();
         return $connections;
     }
+
+    public function addConnection($data){
+        $response = array();
+        $message = "Successfully inserted user";
+        $checker = DB::table('connection_map')
+            ->select('id')
+            ->where([
+                ['user_id', '=', $data->get('user_id')],
+                ['friend_id', '=', $data->get('friend_id')]
+            ])
+            ->exists();
+
+        if ($checker){
+            $message = "Connection request already sent.";
+            $response = array(
+                'msg' => $message,
+                'status' => 'Failed'
+            );
+            return $response;
+        }else{
+            $add_connection = DB::table('connection_map')->insert([
+                'user_id' => $data->get('user_id'),
+                'friend_id' => $data->get('friend_id'),
+                'status_id' => 1,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+            $response = array(
+                'msg' => $message,
+                'status' => true
+            );
+            return $response;
+        }
+
+    }
 }

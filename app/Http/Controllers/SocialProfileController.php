@@ -54,8 +54,27 @@ class SocialProfileController extends Controller
         return $response;
     }
 
-    public function addConnection(){
-        return json_encode(array('Connect' => "add-connection"));
+    public function addConnection(Request $request){
+        $social_profile = new SocialProfile();
+        //Check token here before pushing request
+        //If there is a problem update message response:
+        //$message ="Blah blah blah";
+        $data = array();
+
+        try {
+            $data = $social_profile->addConnection($request->json());
+            $message = $data['msg'];
+        } catch (Throwable $e) {
+            $message = $e;
+        }
+
+        $response = array(
+            'status' => http_response_code(),
+            "data" => $data['status'],
+            'message' => $message
+        );
+
+        return $response;
     }
 
     public function getConnections(Request $request){
