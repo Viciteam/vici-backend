@@ -25,6 +25,8 @@ Route::group([
     Route::post("get-profile", 'SocialProfileController@getProfile');
     Route::post("edit-profile", 'SocialProfileController@editProfile');
     Route::post("add-connection", 'SocialProfileController@addConnection');
+    Route::post("accept-connection-request", 'SocialProfileController@acceptConnectionRequest');
     Route::post("get-connections", 'SocialProfileController@getConnections');
+    Route::get("get-suggested-connections", 'SocialProfileController@getSuggestedConnections');
 });
 
