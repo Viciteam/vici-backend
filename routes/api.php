@@ -32,3 +32,29 @@ Route::group([
     Route::post("unfollow-connection", 'SocialProfileController@unFollowConnection');
 });
 
+
+Route::group([
+    'prefix' => 'set',
+], function () {
+    Route::group([
+        'namespace' => 'Posts',
+    ], function () {
+        Route::post("post", 'PostsController@create');
+        Route::post("react", 'PostsController@react');
+    });
+
+});
+
+
+Route::group([
+    'prefix' => 'get',
+], function () {
+    Route::group([
+        'namespace' => 'Posts',
+    ], function () {
+        Route::get("post", 'PostsController@posts');
+        Route::get("post/{id}", 'PostsController@single');
+        
+    });
+
+});
