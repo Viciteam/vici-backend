@@ -28,5 +28,7 @@ Route::group([
     Route::post("accept-connection-request", 'SocialProfileController@acceptConnectionRequest');
     Route::post("get-connections", 'SocialProfileController@getConnections');
     Route::get("get-suggested-connections", 'SocialProfileController@getSuggestedConnections');
+    Route::post("follow-connection", 'SocialProfileController@followConnection');
+    Route::post("unfollow-connection", 'SocialProfileController@unFollowConnection');
 });
 
