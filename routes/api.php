@@ -18,41 +18,42 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
-Route::group([
-    'prefix' => 'social',
-], function () {
-    Route::post("get-profile", 'SocialProfileController@getProfile');
-    Route::post("edit-profile", 'SocialProfileController@editProfile');
-    Route::post("add-connection", 'SocialProfileController@addConnection');
-    Route::post("accept-connection-request", 'SocialProfileController@acceptConnectionRequest');
-    Route::post("get-connections", 'SocialProfileController@getConnections');
-    Route::get("get-suggested-connections", 'SocialProfileController@getSuggestedConnections');
-});
-
-
-Route::group([
-    'prefix' => 'set',
-], function () {
+Route::group(['middleware' => 'checktoken'], function(){ // Custom Token Auth middleware
     Route::group([
-        'namespace' => 'Posts',
+        'prefix' => 'social',
     ], function () {
-        Route::post("post", 'PostsController@create');
-        Route::post("react", 'PostsController@react');
+        Route::post("get-profile", 'SocialProfileController@getProfile');
+        Route::post("edit-profile", 'SocialProfileController@editProfile');
+        Route::post("add-connection", 'SocialProfileController@addConnection');
+        Route::post("accept-connection-request", 'SocialProfileController@acceptConnectionRequest');
+        Route::post("get-connections", 'SocialProfileController@getConnections');
+        Route::get("get-suggested-connections", 'SocialProfileController@getSuggestedConnections');
     });
 
-});
 
-
-Route::group([
-    'prefix' => 'get',
-], function () {
     Route::group([
-        'namespace' => 'Posts',
+        'prefix' => 'set',
     ], function () {
-        Route::get("post", 'PostsController@posts');
-        Route::get("post/{id}", 'PostsController@single');
-        
+        Route::group([
+            'namespace' => 'Posts',
+        ], function () {
+            Route::post("post", 'PostsController@create');
+            Route::post("react", 'PostsController@react');
+        });
+
     });
 
+
+    Route::group([
+        'prefix' => 'get',
+    ], function () {
+        Route::group([
+            'namespace' => 'Posts',
+        ], function () {
+            Route::get("post", 'PostsController@posts');
+            Route::get("post/{id}", 'PostsController@single');
+            
+        });
+
+    });
 });
