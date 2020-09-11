@@ -44,7 +44,6 @@ class SocialProfile extends Model{
             ]);
         return $profile;
     }
-
     public function getConnections($data){
 
         $connections = DB::table('connection_map')
@@ -55,7 +54,6 @@ class SocialProfile extends Model{
             ->get();
         return $connections;
     }
-
     public function addConnection($data){
         $response = array();
         $status = false;
@@ -114,7 +112,6 @@ class SocialProfile extends Model{
         return $response;
 
     }
-
     public function acceptConnectionRequest($data){
 
         $response = array();
@@ -179,7 +176,6 @@ class SocialProfile extends Model{
         return $response;
 
     }
-
     public function getSuggestedConnections($data){
         $message ='';
         $res = array();
@@ -215,5 +211,95 @@ class SocialProfile extends Model{
         );
         return $response;
     }
+    public function followConnection($data){
+        $response = array();
+        $status = false;
+        $message = "Connection Followed";
+        $user_id_exists = DB::table('users')
+            ->select('id')
+            ->where('id', '=', $data->get('user_id'))
+            ->exists();
+        if($user_id_exists){
+            $friend_id_exists =  DB::table('users')
+                ->select('id')
+                ->where('id', '=', $data->get('friend_id'))
+                ->exists();
+            if($friend_id_exists){
+                $checker = DB::table('follow_connection_map')
+                    ->select('id')
+                    ->where([
+                        ['user_id', '=', $data->get('user_id')],
+                        ['friend_id', '=', $data->get('friend_id')]
+                    ])
+                    ->exists();
 
+                if ($checker){
+                    $message = "Connection already followed.";
+                    $status = false;
+                }else{
+                    $follow_connection = DB::table('follow_connection_map')->insert([
+                        'user_id' => $data->get('user_id'),
+                        'friend_id' => $data->get('friend_id'),
+                        'status_id' => 15,
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ]);
+                    $status = true;
+                }
+            }else{
+                $message = "Friend ID can't be found.";
+                $status = false;
+            }
+        }else{
+            $message = "User ID can't be found.";
+            $status = false;
+        }
+
+        $response = array(
+            'msg' => $message,
+            'status' => $status
+        );
+        return $response;
+
+    }
+    public function unFollowConnection($data){
+
+        $response = array();
+        $status = false;
+        $message = "Connection Unfollowed";
+        $user_id_exists = DB::table('users')
+            ->select('id')
+            ->where('id', '=', $data->get('user_id'))
+            ->exists();
+        if($user_id_exists){
+            $friend_id_exists =  DB::table('users')
+                ->select('id')
+                ->where('id', '=', $data->get('friend_id'))
+                ->exists();
+            if($friend_id_exists){
+
+                    $follow_connection = DB::table('follow_connection_map')
+                        ->where([
+                            ['user_id', '=', $data->get('user_id')],
+                            ['friend_id', '=', $data->get('friend_id')]
+                        ])
+                        ->update(['status_id' => 16]);
+                    $status = true;
+
+            }else{
+                $message = "Friend ID can't be found.";
+                $status = false;
+            }
+        }else{
+            $message = "User ID can't be found.";
+            $status = false;
+        }
+
+        $response = array(
+            'msg' => $message,
+            'status' => $status
+        );
+        return $response;
+
+    }
 }
