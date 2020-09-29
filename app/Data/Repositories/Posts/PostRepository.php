@@ -61,6 +61,35 @@ class PostRepository extends BaseRepository
         return $post->id;
     }
 
+    public function time_elapsed_string($datetime, $full = false) {
+        $now = new DateTime;
+        $ago = new DateTime($datetime);
+        $diff = $now->diff($ago);
+    
+        $diff->w = floor($diff->d / 7);
+        $diff->d -= $diff->w * 7;
+    
+        $string = array(
+            'y' => 'year',
+            'm' => 'month',
+            'w' => 'week',
+            'd' => 'day',
+            'h' => 'hour',
+            'i' => 'minute',
+            's' => 'second',
+        );
+        foreach ($string as $k => &$v) {
+            if ($diff->$k) {
+                $v = $diff->$k . ' ' . $v . ($diff->$k > 1 ? 's' : '');
+            } else {
+                unset($string[$k]);
+            }
+        }
+    
+        if (!$full) $string = array_slice($string, 0, 1);
+        return $string ? implode(', ', $string) . ' ago' : 'just now';
+    }
+
     public function getPosts($data)
     {   
         // get main posts
@@ -68,15 +97,22 @@ class PostRepository extends BaseRepository
             $posts = $this->returnToArray($this->post->where('id', '=', $data['post_id'])->orderBy('created_at', 'DESC')->get());
         } elseif(isset($data['position']) && isset($data['position_id'])){
             if($data['position'] == "user"){
-                $posts = $this->returnToArray($this->post->where('user', '=', $data['position_id'])->orderBy('created_at', 'DESC')->get());
+                $posts = $this->returnToArray($this->post->where([['parent', '=', '0'], ['user', '=', $data['position_id']]])->orderBy('created_at', 'DESC')->get());
             } else {
-                $posts = $this->returnToArray($this->post->where([['position', '=', $data['position']],['position_id', '=', $data['position_id']]])->orderBy('created_at', 'DESC')->get());
+                $posts = $this->returnToArray($this->post->where([['parent', '=', '0'], ['position', '=', $data['position']],['position_id', '=', $data['position_id']]])->orderBy('created_at', 'DESC')->get());
             }
             // $posts = $this->returnToArray($this->post->where('id', '=', $data['post_id'])->orderBy('created_at', 'DESC')->get());
         } else {
             $posts = $this->returnToArray($this->post->where([['parent', '=', '0'], ['ispublic', '=', 'public']])->orderBy('created_at', 'DESC')->get());
         }
-        
+
+        $posts_temp = [];
+        foreach ($posts as $key => $value) {
+            $value["posted_on"] = $this->time_elapsed_string($value['created_at']);
+            array_push($posts_temp, $value);
+        }
+        $posts = $posts_temp;
+
         // get comments
         $posts_with_comments = [];
         foreach ($posts as $key => $value) {
@@ -95,13 +131,40 @@ class PostRepository extends BaseRepository
 
                     // get sub-comments
                     $sub_comments = $this->returnToArray($this->post->where('parent', '=', $comvalue['id'])->orderBy('created_at', 'DESC')->get());
-                    $comvalue['reaction'] = $comment_reactions;
+                    $comvalue['posted_on'] = $this->time_elapsed_string($comvalue['created_at']);
+                    // $comvalue['reaction'] = $comment_reactions;
+                    $comvalue['reaction']['like'] = 0;
+                    $comvalue['reaction']['dislike'] = 0;
+
+                    foreach ($comment_reactions as $cr_key => $cr_value) {
+                        if($cr_value['reaction'] == "like"){
+                            $comvalue['reaction']['like']++;
+                        }
+                        if($cr_value['reaction'] == "dislike"){
+                            $comvalue['reaction']['dislike']++;
+                        }
+                    }
+
                     $comvalue['replies'] = [];
+                    
 
                     // level 3 reply
                     foreach ($sub_comments as $ltkey => $ltvalue) {
                         $reply_reactions = $this->returnToArray($this->reaction->where('post', '=', $ltvalue['id'])->orderBy('created_at', 'DESC')->get());
-                        $ltvalue['reaction'] = $reply_reactions;
+                        // $ltvalue['reaction'] = $reply_reactions;
+                        $ltvalue['posted_on'] = $this->time_elapsed_string($ltvalue['created_at']);
+                        $ltvalue['reaction']['like'] = 0;
+                        $ltvalue['reaction']['dislike'] = 0;
+
+                        foreach ($comment_reactions as $scr_key => $scr_value) {
+                            if($scr_value['reaction'] == "like"){
+                                $ltvalue['reaction']['like']++;
+                            }
+                            if($scr_value['reaction'] == "dislike"){
+                                $ltvalue['reaction']['dislike']++;
+                            }
+                        }
+                        
                         array_push($comvalue['replies'], $ltvalue);
                     }
                     array_push($comment_section, $comvalue);
@@ -133,7 +196,19 @@ class PostRepository extends BaseRepository
             }
 
 
-            $value['reaction'] = $reactions;
+            // $value['reaction'] = $reactions;
+
+            $value['reaction']['like'] = 0;
+            $value['reaction']['dislike'] = 0;
+
+            foreach ($reactions as $mcr_key => $mcr_value) {
+                if($mcr_value['reaction'] == "like"){
+                    $value['reaction']['like']++;
+                }
+                if($mcr_value['reaction'] == "dislike"){
+                    $value['reaction']['dislike']++;
+                }
+            }
             $value['comments'] = $comment_section;
             
             array_push($posts_with_comments, $value);
