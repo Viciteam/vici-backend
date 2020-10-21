@@ -49,6 +49,31 @@ class ReactionsRepository extends BaseRepository
         
         return $reaction->id;
     }
+
+    public function get($id)
+    {
+        $reactions = $this->returnToArray($this->reaction->where("post", "=", $id)->get());
+
+        // get reactions names
+        $raction_names = [];
+        foreach ($reactions as $rnkey => $rnvalue) {
+            array_push($raction_names, $rnvalue['reaction']);
+        }
+        $raction_names = array_unique($raction_names);
+
+        // add numbers on reactions
+        $react_numbres = [];
+        foreach ($raction_names as $rmkey => $rmvalue) {
+            $react_numbres[$rmvalue] = 0;
+        }
+
+        // add counts on reactions
+        foreach ($reactions as $rnkey => $rnvalue) {
+            $react_numbres[$rnvalue['reaction']]++;
+        }
+
+        return $react_numbres;
+    }
     
     
 }

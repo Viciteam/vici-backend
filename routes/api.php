@@ -18,7 +18,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::group(['middleware' => 'checktoken'], function(){ // Custom Token Auth middleware
+// Route::group(['middleware' => 'checktoken'], function(){ // Custom Token Auth middleware
     Route::group([
         'prefix' => 'social',
     ], function () {
@@ -53,8 +53,10 @@ Route::group(['middleware' => 'checktoken'], function(){ // Custom Token Auth mi
         ], function () {
             Route::get("post", 'PostsController@posts');
             Route::get("post/{id}", 'PostsController@single');
+
+            Route::get("reactions/{id}", 'PostsController@reactions');
             
         });
 
     });
-});
+// });

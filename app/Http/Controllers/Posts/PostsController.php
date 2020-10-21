@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Http\Services\Posts\InsertPostService;
 use App\Http\Services\Posts\GetPostsService;
 use App\Http\Services\Posts\ReactService;
+use App\Http\Services\Posts\GetReactionsService;
 
 class PostsController extends Controller
 {
@@ -50,6 +51,15 @@ class PostsController extends Controller
         $data = $request->all();
         $data['post_id'] = $id;
         $post = $getPostsServices->handle($data);
+        return $post;
+    }
+
+    public function reactions(
+        GetReactionsService $getReactions,
+        $id
+    )
+    {
+        $post = $getReactions->handle($id);
         return $post;
     }
 }
