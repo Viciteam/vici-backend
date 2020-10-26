@@ -217,7 +217,69 @@ class PostRepository extends BaseRepository
         return $posts_with_comments;
     }
 
+    public function update($data)
+    {
+        $prods = $this->post->find($data['post_id']);
 
+        if (!$prods) {
+            return [
+                "status" => 400,
+                "message" => "Post not found",
+                "data" => []
+            ];
+        }
+
+        if (isset($data['post_id'])) {
+            unset($data['post_id']);
+        }
+
+        $prods->fill($data);
+
+        if (!$prods->save()) {
+            $errors = $prods->getErrors();
+            return [
+                "status" => 500,
+                "message" => "Something went wrong",
+                "data" => $errors
+            ];
+        }
+
+        return [
+            "status" => 200,
+            "message" => "Post updated successfully",
+            "data" => $data
+        ];
+    }
     
-    
+    public function delete($id)
+    {
+        $projects = $this->post->find($id);
+
+        if (!$projects) {
+            return [
+                'status' => 400,
+                'message' => 'Post Details not found',
+                'data' => [],
+            ];
+        }
+        //endregion Existence check
+
+        //region Data deletion
+        if (!$projects->delete()) {
+            $errors = $projects->getErrors();
+            return [
+                'status' => 500,
+                'message' => 'Something went wrong.',
+                'data' => $errors,
+            ];
+        }
+
+        $this->meta->where("post", "=", $id)->delete();
+
+        return [
+            'status' => 200,
+            'message' => 'Successfully deleted the Post.',
+            'data' => [],
+        ];
+    }
 }

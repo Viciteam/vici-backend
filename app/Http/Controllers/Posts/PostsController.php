@@ -9,6 +9,8 @@ use App\Http\Services\Posts\InsertPostService;
 use App\Http\Services\Posts\GetPostsService;
 use App\Http\Services\Posts\ReactService;
 use App\Http\Services\Posts\GetReactionsService;
+use App\Http\Services\Posts\UpdatePostService;
+use App\Http\Services\Posts\DeletePostService;
 
 class PostsController extends Controller
 {
@@ -60,6 +62,27 @@ class PostsController extends Controller
     )
     {
         $post = $getReactions->handle($id);
+        return $post;
+    }
+
+    public function update(
+        Request $request,
+        UpdatePostService $updatePost,
+        $id
+    )
+    {
+        $data = $request->all();
+        $data['post_id'] = $id;
+        $post = $updatePost->handle($data);
+        return $post;
+    }
+
+    public function delete(
+        DeletePostService $delete,
+        $id
+    )
+    {
+        $post = $delete->handle($id);
         return $post;
     }
 }

@@ -59,4 +59,28 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
         });
 
     });
+
+    Route::group([
+        'prefix' => 'update',
+    ], function () {
+        Route::group([
+            'namespace' => 'Posts',
+        ], function () {
+            Route::post("post/{id}", 'PostsController@update');
+            
+        });
+        
+    });
+
+    Route::group([
+        'prefix' => 'delete',
+    ], function () {
+        Route::group([
+            'namespace' => 'Posts',
+        ], function () {
+            Route::delete("post/{id}", 'PostsController@delete');
+            
+        });
+        
+    });
 // });
