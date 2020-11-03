@@ -29,6 +29,6 @@ abstract class BaseService
             'meta' => $meta,
             'data' => $data
         ];
-        return json_encode($return);
+        return response()->json($return, $status);
     }
 }

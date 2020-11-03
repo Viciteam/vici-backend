@@ -52,6 +52,7 @@ class ReactionsRepository extends BaseRepository
 
     public function get($id)
     {
+        
         $reactions = $this->returnToArray($this->reaction->where("post", "=", $id)->get());
 
         // get reactions names

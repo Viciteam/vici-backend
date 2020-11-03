@@ -93,19 +93,85 @@ class PostRepository extends BaseRepository
 
     public function getPosts($data)
     {   
-        // get main posts
-        if(isset($data['post_id'])){
-            $posts = $this->returnToArray($this->post->where('id', '=', $data['post_id'])->orderBy('created_at', 'DESC')->get());
-        } elseif(isset($data['position']) && isset($data['position_id'])){
-            if($data['position'] == "user"){
-                $posts = $this->returnToArray($this->post->where([['parent', '=', '0'], ['user', '=', $data['position_id']]])->orderBy('created_at', 'DESC')->get());
-            } else {
-                $posts = $this->returnToArray($this->post->where([['parent', '=', '0'], ['position', '=', $data['position']],['position_id', '=', $data['position_id']]])->orderBy('created_at', 'DESC')->get());
+        // check if limit and page
+        if(isset($data['limit']) || isset($data['page'])){
+            if((!isset($data['limit']) || $data['limit'] == "") || (!isset($data['page']) || $data['page'] == "")){
+                return [
+                    'status' => 500,
+                    'message' => 'Missing Limit or Page parameter',
+                    'data' => [],
+                ];
             }
-            // $posts = $this->returnToArray($this->post->where('id', '=', $data['post_id'])->orderBy('created_at', 'DESC')->get());
-        } else {
-            $posts = $this->returnToArray($this->post->where([['parent', '=', '0'], ['ispublic', '=', 'public']])->orderBy('created_at', 'DESC')->get());
         }
+
+        // init model
+        $post_model = $this->post;
+        $pages = 0;
+        $post_count = 0;
+
+        // init skip values
+        if(isset($data['limit']) && isset($data['page'])){ // get as per limit or page
+            $skip = ($data['page'] == "1" ? 0 : ($data['page'] == "2" ? $data['limit'] : $data['limit'] * ($data['page'] - 1)));
+        }
+
+        // get main posts
+        if(isset($data['post_id'])){ // get post as per id
+
+            // init post
+            $post_info = $post_model->where('id', '=', $data['post_id']);
+
+            // get items with limit
+            if(isset($data['limit']) && isset($data['page'])){ // get as per limit or page
+                // get items for pagination
+                $for_pagination = $post_info->get()->count();
+
+                // get max number of pages
+                $post_count = $for_pagination;
+                $pages = ceil($for_pagination / $data['limit']);
+
+                $post_info = $post_info->skip($skip)->take($data['limit']);
+            }
+            
+        } elseif(isset($data['position']) && isset($data['position_id'])){ // get post as per position and position id
+            
+            // init post
+            if($data['position'] == "user"){ // if position is user
+                $post_info = $post_model->where([['parent', '=', '0'], ['user', '=', $data['position_id']]]);
+            } else { // if other position is needed
+                $post_info = $post_model->where([['parent', '=', '0'], ['position', '=', $data['position']],['position_id', '=', $data['position_id']]]);
+            }
+
+            if(isset($data['limit']) && isset($data['page'])){ // get as per limit or page
+                // get items for pagination
+                $for_pagination = $post_info->get()->count();
+
+                // get max number of pages
+                $post_count = $for_pagination;
+                $pages = ceil($for_pagination / $data['limit']);
+
+                $post_info = $post_info->skip($skip)->take($data['limit']);
+            }
+            
+        } else {
+
+            // init post
+            $post_info = $post_model->where([['parent', '=', '0'], ['ispublic', '=', 'public']]);
+
+            if(isset($data['limit']) && isset($data['page'])){ // get as per limit or page
+                // get items for pagination
+                $for_pagination = $post_info->get()->count();
+
+                // get max number of pages
+                $post_count = $for_pagination;
+                $pages = ceil($for_pagination / $data['limit']);
+                
+                $post_info = $post_info->skip($skip)->take($data['limit']);
+            }
+        }
+
+        // get post info
+        $post_info = $post_info->orderBy('created_at', 'DESC')->get();
+        $posts = $this->returnToArray($post_info);
 
         $posts_temp = [];
         foreach ($posts as $key => $value) {
@@ -215,7 +281,15 @@ class PostRepository extends BaseRepository
             array_push($posts_with_comments, $value);
         }
         
-        return $posts_with_comments;
+        return [
+            "status" => 200,
+            "message" => "Posts fetched",
+            'meta' => [
+                'max_pages' => $pages,
+                'post_count' => $post_count
+            ],
+            "data" => $posts_with_comments
+        ];
     }
 
     public function update($data)

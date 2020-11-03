@@ -30,11 +30,7 @@ class GetPostsService extends BaseService
     {   
         $posts = $this->post->getPosts($data);
 
-        return $this->absorb([
-            "status" => 200,
-            "message" => "Posts fetched",
-            "data" => $posts
-        ]);
+        return $this->absorb($posts);
     }
 
 }
