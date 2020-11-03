@@ -34,7 +34,7 @@ class PostModel extends BaseModel
         'user' => 'sometimes|required',
         'parent' => 'sometimes|required',
         'level' => 'sometimes|required',
-        'content' => 'sometimes|required',
+        // 'content' => 'sometimes|required',
         'position' => 'sometimes|required',
         'position_id' => 'sometimes|required',
         'ispublic' => 'sometimes|required',

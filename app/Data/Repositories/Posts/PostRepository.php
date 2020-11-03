@@ -44,6 +44,7 @@ class PostRepository extends BaseRepository
     {
         $data['parent'] = (isset($data['parent']) ? $data['parent'] : "0");
         $data['level'] = (isset($data['level']) ? $data['level'] : "1");
+        $data['content'] = (isset($data['content']) ? $data['content'] : " ");
 
         $post = $this->post->init($data);
 
