@@ -40,9 +40,11 @@ class InsertPostService extends BaseService
         // insert meta
         $this->meta->insert($post_id, $data['meta']);
 
+        $data['id'] = $post_id;
         return $this->absorb([
             "status" => 200,
-            "message" => "Post Inserted"
+            "message" => "Post Inserted",
+            "data" => $data
         ]);
     }
 
